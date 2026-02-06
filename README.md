@@ -1,7 +1,7 @@
 # Smart Campus Issue Reporting System
 
 AI for Bharat Hackathon  
-Team Name: Techhack  
+Team Name: Tech Hack  
 
 ---
 
