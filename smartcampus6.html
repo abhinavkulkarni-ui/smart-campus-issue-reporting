@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Campus | Techhack AI</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
+        
+        body { 
+            font-family: 'Outfit', sans-serif; 
+            background-color: #0b1121; /* Deepest Navy */
+            color: #e2e8f0; 
+            overflow-x: hidden; 
+        }
+
+        /* Tech-Mono Font for Data */
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        
+        /* Glassmorphism Premium */
+        .glass {
+            background: rgba(30, 41, 59, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        .glass-nav {
+            background: rgba(11, 17, 33, 0.85);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(99, 102, 241, 0.2);
+        }
+
+        /* Neon Glows */
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(90px);
+            z-index: -1;
+            opacity: 0.4;
+            animation: float 10s infinite ease-in-out;
+        }
+        @keyframes float { 0% { transform: translate(0,0); } 50% { transform: translate(30px, -30px); } 100% { transform: translate(0,0); } }
+
+        /* Custom Status Badges */
+        .badge { padding: 4px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
+        .badge-red { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); }
+        .badge-yellow { background: rgba(234, 179, 8, 0.15); color: #fde047; border: 1px solid rgba(234, 179, 8, 0.3); }
+        .badge-green { background: rgba(34, 197, 94, 0.15); color: #86efac; border: 1px solid rgba(34, 197, 94, 0.3); }
+        .badge-blue { background: rgba(59, 130, 246, 0.15); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.3); }
+
+        /* Loader */
+        .loader { border-top-color: #6366f1; -webkit-animation: spinner 1s linear infinite; animation: spinner 1s linear infinite; }
+        @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Toast Notification Slide */
+        #toast-container { position: fixed; top: 100px; right: 20px; z-index: 9999; }
+        .toast { transform: translateX(120%); transition: transform 0.4s ease-out; }
+        .toast.show { transform: translateX(0); }
+    </style>
+</head>
+<body class="relative min-h-screen">
+
+    <div class="blob bg-indigo-600 w-[500px] h-[500px] top-0 left-[-100px]"></div>
+    <div class="blob bg-purple-600 w-[400px] h-[400px] bottom-0 right-[-50px]"></div>
+    
+    <div id="toast-container" class="flex flex-col gap-4"></div>
+
+    <nav class="fixed w-full z-50 glass-nav transition-all duration-300" id="navbar">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            
+            <div class="flex items-center gap-3 cursor-pointer group" onclick="scrollToSection('home')">
+                <div class="relative w-11 h-11 flex items-center justify-center bg-gradient-to-br from-slate-800 to-black rounded-xl border border-indigo-500/50 shadow-[0_0_15px_rgba(99,102,241,0.3)] group-hover:shadow-[0_0_25px_rgba(99,102,241,0.6)] transition-all duration-300">
+                    <i class="fa-solid fa-microchip text-indigo-400 text-xl"></i>
+                    <div class="absolute -top-1.5 -right-1.5 w-3 h-3 bg-green-500 rounded-full border-2 border-[#0b1121] animate-pulse"></div>
+                </div>
+                <div class="flex flex-col">
+                    <span class="text-xl font-bold tracking-tight text-white leading-none font-mono">
+                        TECH<span class="text-indigo-500">HACK</span>
+                    </span>
+                    <span class="text-[0.65rem] font-semibold text-gray-500 uppercase tracking-[0.2em] pl-0.5">
+                        AI Systems
+                    </span>
+                </div>
+            </div>
+            
+            <div class="hidden md:flex gap-8 text-sm font-medium text-gray-400">
+                <button onclick="scrollToSection('home')" class="hover:text-indigo-400 transition">Home</button>
+                <button onclick="scrollToSection('features')" class="hover:text-indigo-400 transition">AI Core</button>
+                <button onclick="scrollToSection('report')" class="hover:text-indigo-400 transition">Report</button>
+                <button onclick="scrollToSection('faq')" class="hover:text-indigo-400 transition">FAQ</button>
+            </div>
+
+            <button onclick="toggleAdminMode()" class="bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-300 px-5 py-2 rounded-full text-xs font-bold border border-indigo-500/50 transition flex items-center gap-2">
+                <i class="fa-solid fa-shield-halved"></i> Admin
+            </button>
+        </div>
+    </nav>
+
+    <section id="home" class="min-h-screen pt-32 pb-20 px-6 flex flex-col justify-center relative">
+        <div class="max-w-6xl mx-auto text-center">
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 text-xs font-bold mb-8 animate-pulse">
+                <span class="w-2 h-2 rounded-full bg-green-500"></span> AI SYSTEM ONLINE v2.1
+            </div>
+            
+            <h1 class="text-5xl md:text-7xl font-extrabold leading-tight mb-6 text-white hero-anim opacity-0 translate-y-10">
+                Intelligent Campus <br>
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400">Issue Resolution.</span>
+            </h1>
+            
+            <p class="text-gray-400 text-lg md:text-xl max-w-2xl mx-auto mb-10 hero-anim opacity-0 translate-y-10">
+                Forget paper complaints. Techhack uses <span class="text-white font-bold">NLP & AI</span> to analyze, prioritize, and route campus issues to the right department instantly.
+            </p>
+
+            <div class="flex flex-col md:flex-row gap-4 justify-center hero-anim opacity-0 translate-y-10">
+                <button onclick="scrollToSection('report')" class="bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-4 rounded-xl font-bold shadow-[0_0_20px_rgba(79,70,229,0.4)] transition transform hover:scale-105 flex items-center justify-center gap-2">
+                    Start AI Analysis <i class="fa-solid fa-wand-magic-sparkles"></i>
+                </button>
+                <button onclick="scrollToSection('features')" class="glass hover:bg-white/5 text-white px-8 py-4 rounded-xl font-bold transition flex items-center justify-center gap-2">
+                    How it Works
+                </button>
+            </div>
+        </div>
+        
+        <div class="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 mt-24 hero-anim opacity-0 translate-y-10">
+            <div class="glass p-6 rounded-2xl border-t-2 border-indigo-500">
+                <div class="text-3xl font-bold text-white font-mono">98%</div>
+                <div class="text-xs text-indigo-300 uppercase font-bold mt-1">AI Accuracy</div>
+            </div>
+            <div class="glass p-6 rounded-2xl border-t-2 border-teal-500">
+                <div class="text-3xl font-bold text-white font-mono">&lt; 20ms</div>
+                <div class="text-xs text-teal-300 uppercase font-bold mt-1">Processing Time</div>
+            </div>
+            <div class="glass p-6 rounded-2xl border-t-2 border-purple-500">
+                <div class="text-3xl font-bold text-white font-mono">Auto</div>
+                <div class="text-xs text-purple-300 uppercase font-bold mt-1">Dept. Routing</div>
+            </div>
+        </div>
+    </section>
+
+    <section id="features" class="py-24 px-6">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl font-bold text-white mb-2">Powered by Techhack Engine</h2>
+                <p class="text-gray-400">We don't just log issues. We understand them.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="glass p-8 rounded-2xl hover:border-indigo-500/50 transition duration-300 feature-card opacity-0 translate-y-10">
+                    <div class="w-12 h-12 bg-indigo-500/20 rounded-lg flex items-center justify-center mb-4 text-indigo-400 text-xl border border-indigo-500/30">
+                        <i class="fa-solid fa-brain"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-2">Sentiment Analysis</h3>
+                    <p class="text-gray-400 text-sm">The system scans descriptions for urgent keywords like "Spark", "Leak", or "Smoke" to auto-assign priority.</p>
+                </div>
+                
+                <div class="glass p-8 rounded-2xl hover:border-teal-500/50 transition duration-300 feature-card opacity-0 translate-y-10">
+                    <div class="w-12 h-12 bg-teal-500/20 rounded-lg flex items-center justify-center mb-4 text-teal-400 text-xl border border-teal-500/30">
+                        <i class="fa-solid fa-network-wired"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-2">Smart Routing</h3>
+                    <p class="text-gray-400 text-sm">Automatically tags the correct department (IT, Civil, Electrical) based on the category selected.</p>
+                </div>
+
+                <div class="glass p-8 rounded-2xl hover:border-purple-500/50 transition duration-300 feature-card opacity-0 translate-y-10">
+                    <div class="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center mb-4 text-purple-400 text-xl border border-purple-500/30">
+                        <i class="fa-solid fa-location-dot"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-2">Geo-Tagging</h3>
+                    <p class="text-gray-400 text-sm">Captures precise GPS coordinates so maintenance teams don't waste time searching for the room.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="report" class="py-24 px-6 flex justify-center">
+        <div class="max-w-3xl w-full glass p-8 md:p-12 rounded-3xl relative overflow-hidden report-container border border-white/10">
+            
+            <div id="success-overlay" class="absolute inset-0 bg-[#0b1121]/95 z-20 flex-col items-center justify-center hidden text-center p-10 backdrop-blur-md">
+                <div class="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mb-6 border border-green-500/50 shadow-[0_0_30px_rgba(34,197,94,0.3)]">
+                    <i class="fa-solid fa-check text-3xl text-green-400"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-white mb-2">Issue Logged Successfully!</h3>
+                <p class="text-gray-400 mb-6">Your Ticket ID: <span id="ticket-id-display" class="text-indigo-400 font-mono font-bold">TH-0000</span></p>
+                
+                <div class="bg-slate-800/50 p-4 rounded-xl border border-white/5 text-left w-full max-w-sm mb-6">
+                    <div class="text-xs font-bold text-gray-500 uppercase mb-2">🤖 AI Analysis Report</div>
+                    <div class="flex justify-between text-sm mb-1">
+                        <span class="text-gray-400">Priority Assigned:</span>
+                        <span id="ai-priority-display" class="font-bold text-white">Pending</span>
+                    </div>
+                    <div class="flex justify-between text-sm mb-1">
+                        <span class="text-gray-400">Target Dept:</span>
+                        <span id="ai-dept-display" class="font-bold text-indigo-300">Pending</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-400">Confidence Score:</span>
+                        <span id="ai-confidence-display" class="font-bold text-green-400">0%</span>
+                    </div>
+                </div>
+
+                <button onclick="resetReportForm()" class="bg-indigo-600 px-6 py-2 rounded-lg font-bold hover:bg-indigo-500 transition">File Another</button>
+            </div>
+
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold text-white">Report an Issue</h2>
+                <p class="text-gray-400 text-sm">Please provide details. Our AI will handle the rest.</p>
+            </div>
+
+            <form id="issueForm" onsubmit="handleFormSubmit(event)">
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
+                    <label class="cursor-pointer group">
+                        <input type="radio" name="category" value="Electrical" class="peer sr-only" checked>
+                        <div class="glass p-3 rounded-xl text-center peer-checked:bg-indigo-600/50 peer-checked:border-indigo-400 transition hover:bg-white/5">
+                            <i class="fa-solid fa-bolt text-lg mb-2 text-yellow-400"></i>
+                            <div class="text-xs font-bold text-gray-300">Electrical</div>
+                        </div>
+                    </label>
+                    <label class="cursor-pointer group">
+                        <input type="radio" name="category" value="Plumbing" class="peer sr-only">
+                        <div class="glass p-3 rounded-xl text-center peer-checked:bg-indigo-600/50 peer-checked:border-indigo-400 transition hover:bg-white/5">
+                            <i class="fa-solid fa-faucet text-lg mb-2 text-blue-400"></i>
+                            <div class="text-xs font-bold text-gray-300">Water</div>
+                        </div>
+                    </label>
+                    <label class="cursor-pointer group">
+                        <input type="radio" name="category" value="Internet" class="peer sr-only">
+                        <div class="glass p-3 rounded-xl text-center peer-checked:bg-indigo-600/50 peer-checked:border-indigo-400 transition hover:bg-white/5">
+                            <i class="fa-solid fa-wifi text-lg mb-2 text-red-400"></i>
+                            <div class="text-xs font-bold text-gray-300">IT/Wifi</div>
+                        </div>
+                    </label>
+                    <label class="cursor-pointer group">
+                        <input type="radio" name="category" value="Cleanliness" class="peer sr-only">
+                        <div class="glass p-3 rounded-xl text-center peer-checked:bg-indigo-600/50 peer-checked:border-indigo-400 transition hover:bg-white/5">
+                            <i class="fa-solid fa-broom text-lg mb-2 text-green-400"></i>
+                            <div class="text-xs font-bold text-gray-300">Hygiene</div>
+                        </div>
+                    </label>
+                    <label class="cursor-pointer group">
+                        <input type="radio" name="category" value="Other" class="peer sr-only">
+                        <div class="glass p-3 rounded-xl text-center peer-checked:bg-indigo-600/50 peer-checked:border-indigo-400 transition hover:bg-white/5">
+                            <i class="fa-solid fa-circle-question text-lg mb-2 text-purple-400"></i>
+                            <div class="text-xs font-bold text-gray-300">Other</div>
+                        </div>
+                    </label>
+                </div>
+
+                <div class="space-y-5">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                         <div>
+                            <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Roll Number</label>
+                            <input type="text" id="rollno" required placeholder="Ex: 21CSE102" class="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-indigo-500 transition font-mono">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Location</label>
+                            <div class="flex gap-2">
+                                <input type="text" id="location" required placeholder="Ex: Library, 2nd Floor" class="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-indigo-500 transition">
+                                <button type="button" onclick="geoLocate()" class="bg-indigo-600/20 text-indigo-300 px-3 rounded-lg hover:bg-indigo-600/40 transition border border-indigo-500/30" title="Use GPS">
+                                    <i class="fa-solid fa-location-crosshairs"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Description (AI Analyzed)</label>
+                        <textarea id="desc" required rows="3" placeholder="Describe the issue... (e.g. 'Sparks coming from socket' will trigger High Priority)" class="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-indigo-500 transition"></textarea>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Evidence</label>
+                            <label class="cursor-pointer bg-white/5 border border-white/10 hover:bg-white/10 text-gray-400 px-4 py-3 rounded-lg text-sm font-bold transition flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-camera"></i> Upload Photo
+                                <input type="file" id="evidence-upload" class="hidden" accept="image/*" onchange="previewImage(event)">
+                            </label>
+                            <div id="image-preview" class="hidden mt-2 h-16 rounded-lg bg-cover bg-center border border-indigo-500/50"></div>
+                        </div>
+                        <div class="flex items-end">
+                            <p class="text-xs text-gray-500 italic leading-relaxed">
+                                *Note: Priority is initially set by AI based on your description keywords. Admins can override later.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" id="submitBtn" class="w-full mt-8 bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-xl font-bold shadow-lg transition transform active:scale-95 flex justify-center items-center gap-2">
+                    Submit Report <i class="fa-solid fa-paper-plane"></i>
+                </button>
+            </form>
+        </div>
+    </section>
+
+    <section id="faq" class="py-24 px-6 bg-[#090e1a]">
+        <div class="max-w-4xl mx-auto">
+            <h2 class="text-3xl font-bold text-white mb-10 text-center">Frequently Asked Questions</h2>
+            
+            <div class="grid gap-4">
+                <div class="glass p-6 rounded-xl">
+                    <h4 class="font-bold text-white mb-2 flex items-center gap-2"><i class="fa-regular fa-circle-question text-indigo-400"></i> How does the AI decide priority?</h4>
+                    <p class="text-sm text-gray-400">We use a keyword-based NLP model. Words like "Fire", "Spark", or "Gas" trigger a <span class="text-red-400 font-bold">High Priority</span> alert. Maintenance words like "Dripping" trigger Medium/Low priority.</p>
+                </div>
+                <div class="glass p-6 rounded-xl">
+                    <h4 class="font-bold text-white mb-2 flex items-center gap-2"><i class="fa-regular fa-circle-question text-indigo-400"></i> Where is my data stored?</h4>
+                    <p class="text-sm text-gray-400">For this prototype, data is stored locally in your browser (LocalStorage). In the production version, we use AWS DynamoDB for secure cloud storage.</p>
+                </div>
+                <div class="glass p-6 rounded-xl">
+                    <h4 class="font-bold text-white mb-2 flex items-center gap-2"><i class="fa-regular fa-circle-question text-indigo-400"></i> Is this system secure?</h4>
+                    <p class="text-sm text-gray-400">Yes. The Admin Dashboard is password-gated. Future updates will include JWT Authentication via AWS Cognito.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div id="dashboard-modal" class="fixed inset-0 z-[100] bg-black/90 hidden backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-[#0b1121] border border-white/10 w-full max-w-7xl h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden relative">
+            
+            <button onclick="closeAdminMode()" class="absolute top-4 right-4 bg-white/10 p-2 rounded-full hover:bg-white/20 transition z-10 text-white">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="bg-[#151e32] p-6 border-b border-white/5 flex justify-between items-center">
+                <div>
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-shield-cat text-indigo-400"></i> Admin Command Center
+                    </h2>
+                    <p class="text-gray-500 text-xs mt-1">AI Agent Status: <span class="text-green-400 font-mono">ONLINE</span></p>
+                </div>
+                <div class="flex gap-3">
+                    <div class="bg-black/40 px-3 py-1.5 rounded border border-white/5">
+                        <div class="text-[10px] text-gray-500 uppercase">Pending</div>
+                        <div class="text-lg font-bold text-red-400" id="admin-pending">0</div>
+                    </div>
+                    <div class="bg-black/40 px-3 py-1.5 rounded border border-white/5">
+                        <div class="text-[10px] text-gray-500 uppercase">Resolved</div>
+                        <div class="text-lg font-bold text-green-400" id="admin-resolved">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex-1 overflow-auto p-6">
+                <div class="bg-white/5 rounded-xl border border-white/10 overflow-hidden">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-white/5 border-b border-white/10">
+                            <tr>
+                                <th class="p-4 text-xs font-bold text-gray-400 uppercase">Ticket ID</th>
+                                <th class="p-4 text-xs font-bold text-gray-400 uppercase">Category</th>
+                                <th class="p-4 text-xs font-bold text-gray-400 uppercase">Description</th>
+                                <th class="p-4 text-xs font-bold text-gray-400 uppercase">Dept. Route</th>
+                                <th class="p-4 text-xs font-bold text-gray-400 uppercase">AI Analysis</th>
+                                <th class="p-4 text-xs font-bold text-gray-400 uppercase">Status</th>
+                                <th class="p-4 text-xs font-bold text-gray-400 uppercase text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-table-body" class="divide-y divide-white/5 text-sm text-gray-300">
+                            </tbody>
+                    </table>
+                    <div id="admin-empty-state" class="hidden p-12 text-center text-gray-600">No issues found.</div>
+                </div>
+                <div class="mt-4 text-right">
+                    <button onclick="clearDatabase()" class="text-red-500/50 hover:text-red-500 text-xs font-bold transition">CLEAR DATABASE</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. State Management ---
+        let issues = JSON.parse(localStorage.getItem('campusIssues')) || [];
+
+        function scrollToSection(id) {
+            document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // --- 2. Toast Notification System (Replaces Alerts) ---
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            // Toast Styles
+            let borderClass = type === 'error' ? 'border-red-500' : 'border-indigo-500';
+            let icon = type === 'error' ? '<i class="fa-solid fa-triangle-exclamation text-red-400"></i>' : '<i class="fa-solid fa-circle-info text-indigo-400"></i>';
+            if(type === 'success') {
+                borderClass = 'border-green-500';
+                icon = '<i class="fa-solid fa-check text-green-400"></i>';
+            }
+
+            toast.className = `toast glass p-4 rounded-xl border-l-4 ${borderClass} flex items-center gap-3 min-w-[300px] shadow-2xl bg-[#0b1121]`;
+            toast.innerHTML = `
+                ${icon}
+                <div>
+                    <h4 class="font-bold text-white text-sm">${type === 'error' ? 'Error' : 'Notification'}</h4>
+                    <p class="text-xs text-gray-400">${message}</p>
+                </div>
+            `;
+
+            container.appendChild(toast);
+            
+            // Animation Trigger
+            requestAnimationFrame(() => {
+                toast.classList.add('show');
+            });
+
+            // Remove after 3s
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 400);
+            }, 3000);
+        }
+
+        // --- 3. THE AI ENGINE (Explainable Logic) ---
+        function analyzeIssue(description, category) {
+            const dangerKeywords = ['fire', 'smoke', 'spark', 'shock', 'short circuit', 'exposed', 'gas', 'explosion'];
+            const urgentKeywords = ['leak', 'broken', 'overflow', 'exam', 'stuck', 'locked'];
+            
+            let priority = 'Low';
+            let confidence = 75; // Base confidence
+            let reason = 'Standard Request';
+            let dept = 'General Admin';
+
+            // 1. Department Routing
+            const deptMap = {
+                'Electrical': 'Facilities (Electrical)',
+                'Plumbing': 'Maintenance (Civil)',
+                'Internet': 'IT Cell',
+                'Cleanliness': 'Housekeeping',
+                'Other': 'Admin Office'
+            };
+            dept = deptMap[category] || 'Admin';
+
+            // 2. Priority Analysis
+            const lowerDesc = description.toLowerCase();
+            
+            if (dangerKeywords.some(w => lowerDesc.includes(w))) {
+                priority = 'High';
+                confidence = 98;
+                reason = 'Detected Danger Keywords';
+            } else if (urgentKeywords.some(w => lowerDesc.includes(w))) {
+                priority = 'Medium';
+                confidence = 89;
+                reason = 'Detected Urgency Keywords';
+            }
+
+            return { priority, confidence, reason, dept };
+        }
+
+        // --- 4. Form Handling ---
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            const originalText = btn.innerHTML;
+            const desc = document.getElementById('desc').value;
+            const cat = document.querySelector('input[name="category"]:checked').value;
+
+            // Loading State
+            btn.innerHTML = `<div class="loader ease-linear rounded-full border-2 border-t-2 border-white h-5 w-5 mr-2"></div> Processing AI...`;
+            btn.disabled = true;
+
+            // Run AI Analysis
+            const aiResult = analyzeIssue(desc, cat);
+
+            // Create Data Object
+            const formData = {
+                id: 'TH-' + Math.floor(Math.random() * 9000 + 1000),
+                category: cat,
+                location: document.getElementById('location').value,
+                desc: desc,
+                priority: aiResult.priority, // AI Decided
+                confidence: aiResult.confidence,
+                reason: aiResult.reason,
+                department: aiResult.dept,
+                rollno: document.getElementById('rollno').value,
+                date: new Date().toLocaleDateString(),
+                status: 'Pending'
+            };
+
+            // Simulate Network
+            setTimeout(() => {
+                issues.unshift(formData);
+                localStorage.setItem('campusIssues', JSON.stringify(issues));
+
+                // Update Success Screen with AI Data
+                document.getElementById('ticket-id-display').innerText = formData.id;
+                document.getElementById('ai-priority-display').innerText = formData.priority;
+                document.getElementById('ai-dept-display').innerText = formData.department;
+                document.getElementById('ai-confidence-display').innerText = formData.confidence + "%";
+                
+                // Color coding for modal
+                const pColor = formData.priority === 'High' ? 'text-red-400' : (formData.priority === 'Medium' ? 'text-yellow-400' : 'text-green-400');
+                document.getElementById('ai-priority-display').className = `font-bold ${pColor}`;
+
+                // Show Overlay
+                document.getElementById('success-overlay').classList.remove('hidden');
+                document.getElementById('success-overlay').classList.add('flex');
+
+                // 🎉 CONFETTI EFFECT
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 },
+                    colors: ['#6366f1', '#a855f7', '#14b8a6']
+                });
+
+                showToast(`Report submitted! AI routed to ${formData.department}`, 'success');
+                
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }, 1500);
+        }
+
+        // --- 5. Admin Dashboard ---
+        function renderAdminDashboard() {
+            const tbody = document.getElementById('admin-table-body');
+            tbody.innerHTML = '';
+            
+            // Stats
+            document.getElementById('admin-pending').innerText = issues.filter(i => i.status === 'Pending').length;
+            document.getElementById('admin-resolved').innerText = issues.filter(i => i.status === 'Resolved').length;
+
+            if (issues.length === 0) {
+                document.getElementById('admin-empty-state').classList.remove('hidden');
+                return;
+            }
+            document.getElementById('admin-empty-state').classList.add('hidden');
+
+            issues.forEach((issue, index) => {
+                let badgeClass = 'badge-red'; // Default pending
+                if(issue.status === 'In Progress') badgeClass = 'badge-yellow';
+                if(issue.status === 'Resolved') badgeClass = 'badge-green';
+
+                // Priority Badge
+                let pBadge = 'badge-blue';
+                if(issue.priority === 'High') pBadge = 'badge-red';
+                if(issue.priority === 'Medium') pBadge = 'badge-yellow';
+
+                const row = `
+                    <tr class="hover:bg-white/5 transition border-b border-white/5 last:border-0">
+                        <td class="p-4 font-mono text-indigo-400 font-bold">#${issue.id}</td>
+                        <td class="p-4"><span class="font-bold text-gray-300">${issue.category}</span></td>
+                        <td class="p-4 text-gray-400 max-w-xs truncate">${issue.desc}</td>
+                        <td class="p-4 font-mono text-xs text-indigo-300">${issue.department}</td>
+                        <td class="p-4">
+                            <div class="flex flex-col">
+                                <span class="badge ${pBadge} w-fit mb-1">${issue.priority}</span>
+                                <span class="text-[10px] text-gray-500">Reason: ${issue.reason}</span>
+                                <span class="text-[10px] text-gray-500">Conf: ${issue.confidence}%</span>
+                            </div>
+                        </td>
+                        <td class="p-4"><span class="badge ${badgeClass}">${issue.status}</span></td>
+                        <td class="p-4 text-right">
+                            <button onclick="changeStatus(${index})" class="text-indigo-400 hover:text-indigo-300 font-bold text-xs border border-indigo-500/30 px-2 py-1 rounded hover:bg-indigo-500/10 transition">
+                                Next Status
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+
+        function changeStatus(index) {
+            const states = ['Pending', 'In Progress', 'Resolved'];
+            const currentIdx = states.indexOf(issues[index].status);
+            const nextIdx = (currentIdx + 1) % states.length;
+            issues[index].status = states[nextIdx];
+            localStorage.setItem('campusIssues', JSON.stringify(issues));
+            renderAdminDashboard();
+            showToast(`Ticket Updated to ${states[nextIdx]}`);
+        }
+
+        // --- 6. Utilities (Geo, Image, Reset) ---
+        function geoLocate() {
+            showToast("Accessing GPS Satellites...", 'info');
+            const locInput = document.getElementById('location');
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((pos) => {
+                    locInput.value = `GPS: ${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`;
+                    showToast("Location Locked via GPS", 'success');
+                }, () => showToast("GPS Access Denied", 'error'));
+            }
+        }
+
+        function previewImage(event) {
+            const file = event.target.files[0];
+            if(file){
+                const reader = new FileReader();
+                reader.onload = function(e){
+                    const preview = document.getElementById('image-preview');
+                    preview.style.backgroundImage = `url(${e.target.result})`;
+                    preview.classList.remove('hidden');
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function resetReportForm() {
+            document.getElementById('issueForm').reset();
+            document.getElementById('image-preview').classList.add('hidden');
+            document.getElementById('success-overlay').classList.remove('flex');
+            document.getElementById('success-overlay').classList.add('hidden');
+        }
+
+        // --- 7. Auth ---
+        function toggleAdminMode() {
+            const password = prompt("🔐 Enter Admin Password:");
+            if(password === "SCRS@AWS") {
+                renderAdminDashboard();
+                document.getElementById('dashboard-modal').classList.remove('hidden');
+                showToast("Welcome back, Admin", 'success');
+            } else if(password !== null) {
+                showToast("Access Denied", 'error');
+            }
+        }
+        function closeAdminMode() {
+            document.getElementById('dashboard-modal').classList.add('hidden');
+        }
+        function clearDatabase() {
+            if(confirm("⚠ WIPE ALL DATA?")) {
+                localStorage.removeItem('campusIssues');
+                issues = [];
+                renderAdminDashboard();
+                showToast("Database Cleared", 'error');
+            }
+        }
+
+        // --- 8. Init Animations ---
+        gsap.registerPlugin(ScrollTrigger);
+        gsap.to(".hero-anim", { opacity: 1, y: 0, duration: 1, stagger: 0.1, ease: "power3.out", delay: 0.2 });
+        gsap.to(".feature-card", { scrollTrigger: { trigger: "#features", start: "top 75%" }, opacity: 1, y: 0, duration: 0.6, stagger: 0.2 });
+
+    </script>
+</body>
+</html>
